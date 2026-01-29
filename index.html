@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EthnoBridge - Head & Neck Cancer Care Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div id="app" class="max-w-7xl mx-auto p-6"></div>
+
+    <script>
+        // Patient Data for Head & Neck Cancer
+        const patients = [
+            {
+                id: 'HNC-402',
+                name: 'Rajesh Kumar',
+                site: 'Tata Memorial Hospital (Mumbai)',
+                region: 'West India',
+                village: 'Thane',
+                cancerType: 'Oral Cavity',
+                stage: 'Stage III',
+                tnmStage: 'T3N1M0',
+                hpvStatus: 'Negative',
+                treatment: 'Chemoradiation',
+                treatmentWeek: 4,
+                lastInteraction: new Date(Date.now() - 3 * 60 * 60 * 1000),
+                continuityScore: 58,
+                symptoms: ['Pain (6/10)', 'Difficulty swallowing', 'Mouth sores'],
+                sideEffects: ['Mucositis Grade 2', 'Xerostomia'],
+                nutritionStatus: 'PEG tube feeding',
+                alerts: ['Pain increasing', 'Weight loss 3kg this week', 'Missed last appointment']
+            },
+            {
+                id: 'HNC-156',
+                name: 'Priya Sharma',
+                site: 'AIIMS Delhi',
+                region: 'North India',
+                village: 'Faridabad',
+                cancerType: 'Nasopharyngeal',
+                stage: 'Stage II',
+                tnmStage: 'T2N0M0',
+                hpvStatus: 'Positive',
+                treatment: 'Radiation Therapy',
+                treatmentWeek: 2,
+                lastInteraction: new Date(Date.now() - 20 * 60 * 1000),
+                continuityScore: 89,
+                symptoms: ['Mild soreness', 'Fatigue (3/10)'],
+                sideEffects: ['Skin redness Grade 1'],
+                nutritionStatus: 'Oral intake adequate',
+                alerts: []
+            },
+            {
+                id: 'HNC-789',
+                name: 'Mohammed Ali',
+                site: 'CMC Vellore (Tamil Nadu)',
+                region: 'South India',
+                village: 'Vellore',
+                cancerType: 'Laryngeal',
+                stage: 'Stage IV',
+                tnmStage: 'T4aN2M0',
+                hpvStatus: 'N/A',
+                treatment: 'Post-op Radiation',
+                treatmentWeek: 6,
+                lastInteraction: new Date(Date.now() - 1 * 60 * 60 * 1000),
+                continuityScore: 72,
+                symptoms: ['Voice changes', 'Pain (4/10)'],
+                sideEffects: ['Dysphagia Grade 2', 'Skin reaction Grade 2'],
+                nutritionStatus: 'Soft diet + supplements',
+                alerts: ['Treatment completion approaching']
+            },
+            {
+                id: 'HNC-567',
+                name: 'Lakshmi Devi',
+                site: 'Regional Cancer Center (Kerala)',
+                region: 'South India',
+                village: 'Thiruvananthapuram',
+                cancerType: 'Oropharyngeal',
+                stage: 'Stage III',
+                tnmStage: 'T2N2bM0',
+                hpvStatus: 'Positive',
+                treatment: 'Chemoradiation',
+                treatmentWeek: 5,
+                lastInteraction: new Date(Date.now() - 5 * 60 * 60 * 1000),
+                continuityScore: 45,
+                symptoms: ['Severe pain (8/10)', 'Cannot swallow'],
+                sideEffects: ['Mucositis Grade 3', 'Severe xerostomia'],
+                nutritionStatus: 'NG tube feeding',
+                alerts: ['HIGH RISK: Severe mucositis', 'Hospitalization may be needed', 'Pain crisis']
+            }
+        ];
+
+        const indianLanguages = [
+            { code: 'hindi', name: 'Hindi - हिंदी' },
+            { code: 'english', name: 'English' },
+            { code: 'tamil', name: 'Tamil - தமிழ்' },
+            { code: 'telugu', name: 'Telugu - తెలుగు' },
+            { code: 'malayalam', name: 'Malayalam - മലയാളം' },
+            { code: 'marathi', name: 'Marathi - मराठी' },
+            { code: 'bengali', name: 'Bengali - বাংলা' },
+            { code: 'kannada', name: 'Kannada - ಕನ್ನಡ' },
+            { code: 'gujarati', name: 'Gujarati - ગુજરાતી' },
+            { code: 'punjabi', name: 'Punjabi - ਪੰਜਾਬੀ' }
+        ];
+
+        const languageMessages = {
+            hindi: { 
+                pain: 'Dard kitna hai? (1-10)',
+                swallow: 'Kya aap khana nigal sakte hain?',
+                nausea: 'Kya aapko ulti aa rahi hai?',
+                yes: 'Haan',
+                no: 'Nahi'
+            },
+            english: { 
+                pain: 'Rate your pain (1-10)',
+                swallow: 'Can you swallow food?',
+                nausea: 'Are you experiencing nausea?',
+                yes: 'Yes',
+                no: 'No'
+            },
+            tamil: {
+                pain: 'Vali eppadi irukku? (1-10)',
+                swallow: 'Sapadu vizhungha mudiyuma?',
+                nausea: 'Vomiting varuthaa?',
+                yes: 'Aamam',
+                no: 'Illai'
+            },
+            telugu: {
+                pain: 'Noppi entha varaku undi? (1-10)',
+                swallow: 'Thinagaluguthunnaara?',
+                nausea: 'Vomiting vasthundaa?',
+                yes: 'Avunu',
+                no: 'Kaadu'
+            },
+            malayalam: {
+                pain: 'Vedana ethra und? (1-10)',
+                swallow: 'Bakshanam kazhikan pattumo?',
+                nausea: 'Vomiting undakunno?',
+                yes: 'Aanu',
+                no: 'Alla'
+            }
+        };
+
+        const treatmentServices = [
+            {
+                id: 'SRV-001',
+                type: 'Radiation Therapy',
+                patientId: 'HNC-156',
+                patientName: 'Priya Sharma',
+                status: 'Scheduled Today',
+                time: '10:00 AM',
+                location: 'AIIMS Delhi - Radiation Oncology',
+                notes: 'Week 2, Day 9 of treatment'
+            },
+            {
+                id: 'SRV-002',
+                type: 'Pain Management',
+                patientId: 'HNC-567',
+                patientName: 'Lakshmi Devi',
+                status: 'Urgent',
+                time: 'ASAP',
+                location: 'Regional Cancer Center',
+                notes: 'Severe mucositis - morphine titration needed'
+            },
+            {
+                id: 'SRV-003',
+                type: 'Nutrition Consultation',
+                patientId: 'HNC-402',
+                patientName: 'Rajesh Kumar',
+                status: 'Completed',
+                time: '2:00 PM',
+                location: 'Tata Memorial - Dietetics',
+                notes: 'PEG tube care education provided'
+            },
+            {
+                id: 'SRV-004',
+                type: 'Speech Therapy',
+                patientId: 'HNC-789',
+                patientName: 'Mohammed Ali',
+                status: 'Scheduled',
+                time: 'Tomorrow 11:00 AM',
+                location: 'CMC Vellore - Rehab Center',
+                notes: 'Post-laryngectomy voice rehabilitation'
+            }
+        ];
+
+        let activeTab = 'dashboard';
+        let selectedLanguage = 'hindi';
+
+        function getScoreColor(score) {
+            if (score >= 80) return 'text-green-600';
+            if (score >= 60) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+
+        function getStageColor(stage) {
+            if (stage.includes('I')) return 'bg-green-100 text-green-700';
+            if (stage.includes('II')) return 'bg-yellow-100 text-yellow-700';
+            if (stage.includes('III')) return 'bg-orange-100 text-orange-700';
+            return 'bg-red-100 text-red-700';
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            const avgScore = patients.reduce((sum, p) => sum + p.continuityScore, 0) / patients.length;
+            const atRisk = patients.filter(p => p.continuityScore < 70).length;
+            const totalAlerts = patients.reduce((sum, p) => sum + p.alerts.length, 0);
+            const activePatients = patients.length;
+
+            app.innerHTML = `
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl shadow-lg p-8 mb-6 text-white fade-in">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                                    <span class="text-3xl">🎗️</span>
+                                </div>
+                                <h1 class="text-4xl font-bold">EthnoBridge</h1>
+                            </div>
+                            <p class="text-purple-100 text-lg">Head & Neck Cancer Care Platform</p>
+                            <p class="text-purple-200 text-sm mt-1">Comprehensive Treatment Support for Rural India</p>
+                        </div>
+                        <div class="text-right bg-white/10 rounded-lg p-4 backdrop-blur">
+                            <div class="text-sm text-purple-100">Cancer Focus</div>
+                            <div class="font-semibold text-lg">Head & Neck Oncology</div>
+                            <div class="text-sm text-purple-100 mt-2">Active Patients</div>
+                            <div class="text-3xl font-bold">${activePatients}</div>
+                            <div class="text-xs text-purple-200 mt-2">Across Cancer Centers</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="bg-white rounded-xl shadow-lg mb-6 overflow-hidden fade-in">
+                    <div class="flex overflow-x-auto">
+                        <button onclick="switchTab('dashboard')" class="flex-1 px-6 py-5 font-semibold whitespace-nowrap transition-all ${activeTab === 'dashboard' ? 'bg-purple-50 border-b-4 border-purple-600 text-purple-600' : 'text-gray-500 hover:bg-gray-50'}">
+                            📊 Overview
+                        </button>
+                        <button onclick="switchTab('messages')" class="flex-1 px-6 py-5 font-semibold whitespace-nowrap transition-all ${activeTab === 'messages' ? 'bg-purple-50 border-b-4 border-purple-600 text-purple-600' : 'text-gray-500 hover:bg-gray-50'}">
+                            💬 Symptom Tracking
+                        </button>
+                        <button onclick="switchTab('patients')" class="flex-1 px-6 py-5 font-semibold whitespace-nowrap transition-all ${activeTab === 'patients' ? 'bg-purple-50 border-b-4 border-purple-600 text-purple-600' : 'text-gray-500 hover:bg-gray-50'}">
+                            👥 Patients
+                        </button>
+                        <button onclick="switchTab('treatment')" class="flex-1 px-6 py-5 font-semibold whitespace-nowrap transition-all ${activeTab === 'treatment' ? 'bg-purple-50 border-b-4 border-purple-600 text-purple-600' : 'text-gray-500 hover:bg-gray-50'}">
+                            💊 Treatment
+                        </button>
+                        <button onclick="switchTab('services')" class="flex-1 px-6 py-5 font-semibold whitespace-nowrap transition-all ${activeTab === 'services' ? 'bg-purple-50 border-b-4 border-purple-600 text-purple-600' : 'text-gray-500 hover:bg-gray-50'}">
+                            🏥 Services
+                        </button>
+                    </div>
+                </div>
+
+                <div id="content" class="fade-in"></div>
+            `;
+
+            renderContent(avgScore, atRisk, totalAlerts);
+        }
+
+        function renderContent(avgScore, atRisk, totalAlerts) {
+            const content = document.getElementById('content');
+
+            if (activeTab === 'dashboard') {
+                content.innerHTML = `
+                    <!-- Metrics -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+                            <div class="text-4xl font-bold mb-2">${avgScore.toFixed(0)}</div>
+                            <div class="text-purple-100 text-sm font-medium">Avg Treatment Adherence</div>
+                            <div class="mt-2 text-xs text-purple-200">Across all patients</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+                            <div class="text-4xl font-bold mb-2">${atRisk}</div>
+                            <div class="text-red-100 text-sm font-medium">High-Risk Patients</div>
+                            <div class="mt-2 text-xs text-red-200">Need immediate attention</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+                            <div class="text-4xl font-bold mb-2">${patients.length}</div>
+                            <div class="text-blue-100 text-sm font-medium">Active in Treatment</div>
+                            <div class="mt-2 text-xs text-blue-200">Currently enrolled</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+                            <div class="text-4xl font-bold mb-2">${totalAlerts}</div>
+                            <div class="text-orange-100 text-sm font-medium">Active Alerts</div>
+                            <div class="mt-2 text-xs text-orange-200">Clinical follow-up needed</div>
+                        </div>
+                    </div>
+
+                    <!-- Cancer Type Distribution -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Cancer Type Distribution</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                                <div class="text-2xl font-bold text-purple-600">1</div>
+                                <div class="text-sm text-gray-700">Oral Cavity</div>
+                            </div>
+                            <div class="bg-pink-50 rounded-xl p-4 border-2 border-pink-200">
+                                <div class="text-2xl font-bold text-pink-600">1</div>
+                                <div class="text-sm text-gray-700">Nasopharyngeal</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+                                <div class="text-2xl font-bold text-blue-600">1</div>
+                                <div class="text-sm text-gray-700">Laryngeal</div>
+                            </div>
+                            <div class="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                                <div class="text-2xl font-bold text-green-600">1</div>
+                                <div class="text-sm text-gray-700">Oropharyngeal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Critical Alerts -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-red-600 text-xl">⚠️</span>
+                                </div>
+                                <h2 class="text-2xl font-bold text-gray-900">Critical Alerts</h2>
+                            </div>
+                            <span class="px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                                ${patients.filter(p => p.alerts.length > 0).length} Active
+                            </span>
+                        </div>
+                        <div class="space-y-4">
+                            ${patients.filter(p => p.alerts.length > 0).map(patient => `
+                                <div class="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 rounded-xl p-5 hover:shadow-lg transition-shadow">
+                                    <div class="flex items-start">
+                                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                            <span class="text-red-600 text-xl">⚠️</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <div class="font-bold text-lg text-gray-900">${patient.name}</div>
+                                                    <div class="text-sm text-gray-600">${patient.id} • ${patient.cancerType} • Week ${patient.treatmentWeek}</div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-2xl font-bold ${getScoreColor(patient.continuityScore)}">
+                                                        ${patient.continuityScore}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">Score</div>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-2 mt-3">
+                                                ${patient.alerts.map(alert => `
+                                                    <div class="flex items-start text-sm">
+                                                        <div class="w-1.5 h-1.5 bg-red-500 rounded-full mr-2 mt-1.5 flex-shrink-0"></div>
+                                                        <span class="text-gray-700">${alert}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab === 'messages') {
+                content.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📝</span>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">Symptom Tracking via WhatsApp</h2>
+                                <p class="text-sm text-gray-600">Daily PRO (Patient Reported Outcomes) in native language</p>
+                            </div>
+                        </div>
+
+                        <!-- Language Selector -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🌍 Select Language</label>
+                            <select id="langSelect" onchange="changeLanguage(this.value)" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                ${indianLanguages.map(lang => `
+                                    <option value="${lang.code}" ${selectedLanguage === lang.code ? 'selected' : ''}>${lang.name}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Sample Questions -->
+                        <div class="bg-gradient-to-b from-gray-100 to-gray-50 rounded-xl p-6 mb-6 border-2 border-gray-200">
+                            <h3 class="font-bold text-gray-900 mb-4">Daily Symptom Check Questions:</h3>
+                            <div class="space-y-3">
+                                <div class="bg-white rounded-lg p-4 shadow-sm">
+                                    <div class="text-sm text-gray-500 mb-1">Pain Assessment</div>
+                                    <div class="font-medium text-gray-900">${languageMessages[selectedLanguage].pain}</div>
+                                </div>
+                                <div class="bg-white rounded-lg p-4 shadow-sm">
+                                    <div class="text-sm text-gray-500 mb-1">Swallowing Function</div>
+                                    <div class="font-medium text-gray-900">${languageMessages[selectedLanguage].swallow}</div>
+                                </div>
+                                <div class="bg-white rounded-lg p-4 shadow-sm">
+                                    <div class="text-sm text-gray-500 mb-1">Nausea Check</div>
+                                    <div class="font-medium text-gray-900">${languageMessages[selectedLanguage].nausea}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Response Options -->
+                        <div class="space-y-4">
+                            <div class="text-sm font-semibold text-gray-700 mb-3">Patient Response Options:</div>
+                            
+                            <div class="mb-4">
+                                <div class="text-sm font-medium text-gray-600 mb-2">Pain Scale (0-10):</div>
+                                <div class="grid grid-cols-11 gap-1">
+                                    ${[0,1,2,3,4,5,6,7,8,9,10].map(num => `
+                                        <button class="px-3 py-3 bg-gradient-to-r ${num <= 3 ? 'from-green-400 to-green-500' : num <= 6 ? 'from-yellow-400 to-yellow-500' : 'from-red-400 to-red-500'} text-white rounded-lg hover:shadow-lg transition-all font-bold">
+                                            ${num}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 font-semibold shadow-md hover:shadow-lg transition-all">
+                                    ✓ ${languageMessages[selectedLanguage].yes}
+                                </button>
+                                <button class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 font-semibold shadow-md hover:shadow-lg transition-all">
+                                    ✗ ${languageMessages[selectedLanguage].no}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Key Symptoms Tracked -->
+                        <div class="mt-8 bg-purple-50 rounded-xl p-6">
+                            <h3 class="font-bold text-gray-900 mb-4">📋 Key Symptoms Monitored:</h3>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div>• Pain severity & location</div>
+                                <div>• Swallowing ability</div>
+                                <div>• Mucositis grade</div>
+                                <div>• Nausea & vomiting</div>
+                                <div>• Weight changes</div>
+                                <div>• Fatigue levels</div>
+                                <div>• Skin reactions</div>
+                                <div>• Voice changes</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab === 'patients') {
+                content.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">👥 Patient Treatment Status</h2>
+                        <div class="space-y-6">
+                            ${patients.map(p => `
+                                <div class="border-2 rounded-xl p-6 ${p.continuityScore < 70 ? 'border-red-300 bg-red-50' : 'border-gray-200'}">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <div class="font-bold text-xl text-gray-900">${p.name}</div>
+                                                <span class="px-3 py-1 ${getStageColor(p.stage)} rounded-full text-xs font-bold">
+                                                    ${p.stage}
+                                                </span>
+                                            </div>
+                                            <div class="text-sm text-gray-600">${p.id} • ${p.cancerType}</div>
+                                            <div class="text-sm text-gray-500">${p.site}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="${getScoreColor(p.continuityScore)} text-4xl font-bold">
+                                                ${p.continuityScore}
+                                            </div>
+                                            <div class="text-xs text-gray-500">Adherence</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Clinical Details -->
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                        <div class="bg-white rounded-lg p-3">
+                                            <div class="text-xs text-gray-500">TNM Stage</div>
+                                            <div class="font-semibold text-gray-900">${p.tnmStage}</div>
+                                        </div>
+                                        <div class="bg-white rounded-lg p-3">
+                                            <div class="text-xs text-gray-500">HPV Status</div>
+                                            <div class="font-semibold text-gray-900">${p.hpvStatus}</div>
+                                        </div>
+                                        <div class="bg-white rounded-lg p-3">
+                                            <div class="text-xs text-gray-500">Treatment</div>
+                                            <div class="font-semibold text-gray-900">${p.treatment}</div>
+                                        </div>
+                                        <div class="bg-white rounded-lg p-3">
+                                            <div class="text-xs text-gray-500">Week</div>
+                                            <div class="font-semibold text-gray-900">${p.treatmentWeek}/7</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Symptoms -->
+                                    <div class="mb-3">
+                                        <div class="text-sm font-semibold text-gray-700 mb-2">Current Symptoms:</div>
+                                        <div class="flex flex-wrap gap-2">
+                                            ${p.symptoms.map(symptom => `
+                                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">${symptom}</span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+
+                                    <!-- Side Effects -->
+                                    <div class="mb-3">
+                                        <div class="text-sm font-semibold text-gray-700 mb-2">Treatment Side Effects:</div>
+                                        <div class="flex flex-wrap gap-2">
+                                            ${p.sideEffects.map(effect => `
+                                                <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">${effect}</span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+
+                                    <!-- Nutrition -->
+                                    <div class="bg-blue-50 rounded-lg p-3 mb-3">
+                                        <div class="text-xs text-blue-700 font-semibold mb-1">Nutrition Status:</div>
+                                        <div class="text-sm text-blue-900">${p.nutritionStatus}</div>
+                                    </div>
+
+                                    ${p.alerts.length > 0 ? `
+                                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                            <div class="text-sm font-semibold text-red-900 mb-2">⚠️ Active Alerts:</div>
+                                            ${p.alerts.map(alert => `
+                                                <div class="text-xs text-red-700 mb-1">• ${alert}</div>
+                                            `).join('')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab === 'treatment') {
+                content.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">💊 Treatment Protocols & Guidelines</h2>
+                        
+                        <!-- Treatment Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+                                <div class="text-3xl mb-2">☢️</div>
+                                <div class="text-2xl font-bold text-purple-600">${patients.filter(p => p.treatment.includes('Radiation')).length}</div>
+                                <div class="text-sm text-gray-700">Radiation Therapy</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
+                                <div class="text-3xl mb-2">💊</div>
+                                <div class="text-2xl font-bold text-blue-600">${patients.filter(p => p.treatment.includes('Chemo')).length}</div>
+                                <div class="text-sm text-gray-700">Chemotherapy</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                                <div class="text-3xl mb-2">🔬</div>
+                                <div class="text-2xl font-bold text-green-600">${patients.filter(p => p.hpvStatus === 'Positive').length}</div>
+                                <div class="text-sm text-gray-700">HPV-Positive Cases</div>
+                            </div>
+                        </div>
+
+                        <!-- Treatment Protocols -->
+                        <div class="space-y-4">
+                            <div class="border-2 border-purple-200 rounded-xl p-6 bg-purple-50">
+                                <h3 class="text-lg font-bold text-gray-900 mb-3">Standard Radiation Protocol</h3>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <div class="font-semibold text-gray-700">Duration:</div>
+                                        <div class="text-gray-600">7 weeks (35 fractions)</div>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-700">Dose:</div>
+                                        <div class="text-gray-600">70 Gy total dose</div>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-700">Frequency:</div>
+                                        <div class="text-gray-600">Daily, Mon-Fri</div>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-700">Technique:</div>
+                                        <div class="text-gray-600">IMRT preferred</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-2 border-blue-200 rounded-xl p-6 bg-blue-50">
+                                <h3 class="text-lg font-bold text-gray-900 mb-3">Concurrent Chemotherapy</h3>
+                                <div class="text-sm space-y-2">
+                                    <div><span class="font-semibold">Agent:</span> Cisplatin 100mg/m²</div>
+                                    <div><span class="font-semibold">Schedule:</span> Day 1, 22, 43 (3 cycles)</div>
+                                    <div><span class="font-semibold">Pre-medications:</span> Hydration, anti-emetics</div>
+                                    <div><span class="font-semibold">Monitoring:</span> Renal function, hearing, electrolytes</div>
+                                </div>
+                            </div>
+
+                            <div class="border-2 border-orange-200 rounded-xl p-6 bg-orange-50">
+                                <h3 class="text-lg font-bold text-gray-900 mb-3">⚠️ Critical Side Effect Management</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <div class="font-semibold text-orange-900 mb-1">Mucositis Management:</div>
+                                        <div class="text-gray-700">
+                                            • Magic mouthwash QID<br>
+                                            • Pain control (morphine PRN)<br>
+                                            • Nutritional support<br>
+                                            • Grade 3+: Consider treatment break
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-orange-900 mb-1">Dysphagia Protocol:</div>
+                                        <div class="text-gray-700">
+                                            • Swallow evaluation weekly<br>
+                                            • Diet modification as needed<br>
+                                            • PEG tube if unable to maintain weight<br>
+                                            • Speech therapy referral
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (activeTab === 'services') {
+                content.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">🏥 Supportive Care Services</h2>
+                                <p class="text-gray-600">Multidisciplinary cancer care coordination</p>
+                            </div>
+                            <button class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg font-semibold">
+                                + Schedule Service
+                            </button>
+                        </div>
+
+                        <!-- Service Status Cards -->
+                        <div class="space-y-4 mb-8">
+                            ${treatmentServices.map(service => `
+                                <div class="border-2 rounded-xl p-5 ${
+                                    service.status === 'Urgent' ? 'border-red-300 bg-red-50' :
+                                    service.status === 'Completed' ? 'border-gray-300 bg-gray-50' :
+                                    'border-purple-300 bg-purple-50'
+                                }">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <span class="px-3 py-1 rounded-full text-xs font-bold ${
+                                                    service.status === 'Urgent' ? 'bg-red-200 text-red-800' :
+                                                    service.status === 'Completed' ? 'bg-gray-200 text-gray-800' :
+                                                    'bg-purple-200 text-purple-800'
+                                                }">
+                                                    ${service.status}
+                                                </span>
+                                                <span class="font-bold text-lg text-gray-900">${service.type}</span>
+                                            </div>
+                                            <div class="text-sm text-gray-600 mb-2">
+                                                <div>Patient: <span class="font-semibold">${service.patientName}</span> (${service.patientId})</div>
+                                                <div>Time: ${service.time}</div>
+                                                <div>Location: ${service.location}</div>
+                                            </div>
+                                            <div class="bg-white rounded-lg p-3 text-sm text-gray-700">
+                                                📝 ${service.notes}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Available Services -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+                                <div class="text-4xl mb-3">🩺</div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Medical Oncology</h3>
+                                <p class="text-sm text-gray-600 mb-4">Chemotherapy management & systemic therapy</p>
+                                <div class="text-xs text-gray-500">
+                                    • Treatment planning<br>
+                                    • Side effect management<br>
+                                    • Lab monitoring
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
+                                <div class="text-4xl mb-3">🍽️</div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Nutrition Support</h3>
+                                <p class="text-sm text-gray-600 mb-4">Dietician consultations & feeding support</p>
+                                <div class="text-xs text-gray-500">
+                                    • Diet counseling<br>
+                                    • PEG/NG tube management<br>
+                                    • Supplement recommendations
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                                <div class="text-4xl mb-3">🗣️</div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Speech Therapy</h3>
+                                <p class="text-sm text-gray-600 mb-4">Voice & swallow rehabilitation</p>
+                                <div class="text-xs text-gray-500">
+                                    • Swallow exercises<br>
+                                    • Voice restoration<br>
+                                    • Communication aids
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-6 border-2 border-orange-200">
+                                <div class="text-4xl mb-3">💊</div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Pain Management</h3>
+                                <p class="text-sm text-gray-600 mb-4">Palliative care & symptom control</p>
+                                <div class="text-xs text-gray-500">
+                                    • Pain assessment<br>
+                                    • Medication adjustment<br>
+                                    • Comfort measures
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border-2 border-teal-200">
+                                <div class="text-4xl mb-3">🧠</div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Psycho-Oncology</h3>
+                                <p class="text-sm text-gray-600 mb-4">Mental health & counseling support</p>
+                                <div class="text-xs text-gray-500">
+                                    • Anxiety management<br>
+                                    • Depression screening<br>
+                                    • Family counseling
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-6 border-2 border-yellow-200">
+                                <div class="text-4xl mb-3">💉</div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-2">Dental Oncology</h3>
+                                <p class="text-sm text-gray-600 mb-4">Oral health during treatment</p>
+                                <div class="text-xs text-gray-500">
+                                    • Pre-RT dental clearance<br>
+                                    • Mucositis care<br>
+                                    • Fluoride therapy
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            render();
+        }
+
+        function changeLanguage(lang) {
+            selectedLanguage = lang;
+            render();
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
